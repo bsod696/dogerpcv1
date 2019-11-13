@@ -99,31 +99,14 @@ function getestimatefee() {
 /////////////////////////////////////////////////////////////////////
 ///  BALANCE                    ///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
-function getbalance($label) {
+function getbalance($address) {
     $addrdet = json_decode(file_get_contents('https://api.blockchair.com/dogecoin/dashboards/address/'.$address), TRUE);
     if($addrdet['data']) {
         $wallet_balance = number_format($addrdet['data'][$address]['address']['balance'], 8, '.', '');
-        WalletAddress::where('label', $label)->where('crypto', $crypto)->update(['balance' => $wallet_balance]);
+        WalletAddress::where('address', $address)->update(['balance' => $wallet_balance]);
         return $wallet_balance;
     }
     else{return null;}
-    
-    $balacc[] = bitcoind()->client('dogecoin')->listunspent()->get();
-    $amt = null;
-    $balance = 0;
-        
-    foreach ($balacc as $acc) {
-        foreach ($acc as $a) {
-            if($a['account'] == $label){$amt[] = number_format($a['amount'], 8, '.', '');}
-        }
-    }
-        
-    if($amt != null) {$balance = array_sum($amt);}
-    else {$balance = 0;}
-
-    $wallet_balance = (int)number_format($balance*100000000, 8, '.', '');
-    WalletAddress::where('label', $label)->where('crypto', $crypto)->update(['balance' => $wallet_balance]);
-    return $wallet_balance;
 }
 
  
