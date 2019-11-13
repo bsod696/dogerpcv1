@@ -17,8 +17,9 @@ class InfratestController extends Controller
 {
     #################Debug #########################
 	public function debug(){
+		$address = "DEqPA3SHEsWGr1GdrbwX9c1bLdvajVoqjB";
 		dd(
-			getconnection()
+			//getconnection()
 			// getblockhash($blockid),
 			// getblockdet($blockhash),
 			// getestimatefee(),
@@ -27,7 +28,7 @@ class InfratestController extends Controller
 			// addCrypto($label),
 			// get_label_crypto($address),
 			// listransactionall(),
-			// listransaction($label, $idcurrency, $id_gecko),
+			listransaction($address)
 			// gettransaction_crypto($txid),
 			// checkAddress($address),
 			// sendtoaddressRAW($label, $recvaddress, $cryptoamount, $memo, $comm_fee),
