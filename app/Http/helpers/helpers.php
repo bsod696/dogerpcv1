@@ -202,9 +202,56 @@ function listransaction($address) {
 /////////////////////////////////////////////////////////////////////
 ///  GET TRANSACTION             ///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
-function gettransaction_crypto($txid) {
-    $transaction = bitcoind()->client('dogecoin')->gettransaction($txid)->get();
-    return $transaction;
+function gettransaction_crypto($tx) {
+    $txdet = json_decode(file_get_contents('https://api.blockchair.com/dogecoin/dashboards/transaction/'.$tx), TRUE);
+    if($txdet['data']) {
+        $blockid = $txdet['data'][$tx]['transaction']['block_id'];
+        $blockhash = getblockhash($blockid);
+        $blocktime = getblockdet($blockhash)['time'];
+        $timeraw = $txdet['data'][$tx]['transaction']['time'];
+        $time = strtotime($timeraw);
+        $timereceived = strtotime($timeraw);
+        $txid = $tx;
+        $net_fee = number_format($txdet['data'][$tx]['transaction']['fee'], 8, '.', '');
+        $net_fee_usd = number_format($txdet['data'][$tx]['transaction']['fee_usd'], 8, '.', '');
+        $amount = number_format($txdet['data'][$tx]['outputs'][0]['value'], 8, '.', '');
+        $amount_usd = number_format($txdet['data'][$tx]['outputs'][0]['value_usd'], 2, '.', '');
+        $conf = getblockdet($blockhash)['confirmations'];
+                
+        $recipent = $txdet['data'][$tx]['outputs'][0]['recipient'];
+        if ($recipent == $address) {$txtype = 'receive';}
+        else{$txtype = "send";}
+
+        $currency = 'USD';
+        $remarks = strtoupper($txtype);
+        $userdet = array('uid' => 666);
+
+        $rate = number_format(strval($net_fee_usd/($net_fee/100000000)), 8, '.', '');
+
+        $transaction[] = array(
+            'uid' => '1661',//$userdet->uid,
+            'status' => 'success',
+            'blockid' => $blockid,
+            'blockhash' => $blockhash,
+            'blocktime' => $blocktime,
+            'txid' => $tx,
+            'net_fee' => $net_fee,
+            'net_fee_usd' => $net_fee_usd,
+            'amount' => $amount,
+            'amount_usd' => $amount_usd,
+            'currency' => $currency,
+            'rate' => $rate,
+            'recipent' => $recipent,
+            'txtype' => $txtype,
+            'confirmation' => $conf,
+            'remarks' => strtoupper($txtype),
+            'txdate' => $timeraw,
+            'time' => strtotime($timeraw),
+            'timereceived' => strtotime($timeraw),
+        );
+        return $transaction;
+    }
+    else{return null;} 
 }
 
 
@@ -219,13 +266,13 @@ function send_doge($addressF, $addressT, $amount){
 
 ////////////////////////////////////////////////////////////////////
 function move_doge($label, $label2, $amount) {
-    getbalance($label);
-    getbalance($label2);
+    get_balance($label);
+    get_balance($label2);
 
     $txid = bitcoind()->client('dogecoin')->move($label, $label2, $amount)->get();
 
-    getbalance($label);
-    getbalance($label2);
+    get_balance($label);
+    get_balance($label2);
 
     if($txid != ''){return $txid;}
     else{return null;}
@@ -233,14 +280,14 @@ function move_doge($label, $label2, $amount) {
 
 
 ////////////////////////////////////////////////////////////////////
-function move_crypto_comment($crypto, $label, $label2, $amount, $comment) {
-    getbalance($label);
-    getbalance($label2);
+function move_crypto_comment($label, $label2, $amount, $comment) {
+    get_balance($label);
+    get_balance($label2);
 
     $txid = bitcoind()->client('dogecoin')->move($label, $label2, $amount, $comment)->get();
 
-    getbalance($label);
-    getbalance($label2);
+    get_balance($label);
+    get_balance($label2);
 
     if($txid != ''){return $txid;}
     else{return null;}
@@ -248,25 +295,22 @@ function move_crypto_comment($crypto, $label, $label2, $amount, $comment) {
 
 
 ////////////////////////////////////////////////////////////////////
-function sendtomanyaddress($sendlabel, $recvaddress, $cryptoamount, $memo) {
-    $bal = getbalance($address);
-        $estfee = getestimatefee($crypto);
-        $txcost =  number_format(($cryptoamount+$estfee+$pxfee)*100000000, 0, '.', '');
+function sendtomanyaddress($memo) {
+    $bal = get_balance($address);
+    $estfee = getestimatefee();
+    $txcost =  number_format(($cryptoamount+$estfee), 8, '.', '');
 
-        if ($bal >= $txcost){
-            $txid = bitcoind()->client('dogecoin')->sendmany("",
-                array(
-                    $recvaddress => $cryptoamount,
-                    $pxfeeaddr => $pxfee
-                )
-            )->get();
-            getbalance($crypto, $sendlabel);
-            return $txid;
+    $arr = $receiver;
+
+    if ($bal >= $txcost){
+        $txid = bitcoind()->client('dogecoin')->sendmany("",$receiver)->get();
+        $addresses = array_keys($receiver);
+        foreach ($addresses as $addr) {
+            $bal[] = get_balance($addr);
         }
-        else{
-            $msg = array('error'=>"Insufficient fund. You need at least ".($txcost/'10000000')." ".$crypto." to perform this transaction");
-            return $msg;
-        }
+        return $txid;
+    }
+    else{return null;}
 }
 
 
