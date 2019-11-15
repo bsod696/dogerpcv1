@@ -11,7 +11,9 @@ class QueueTrans extends Model
 		'recipient', 
 		'amount', 
 		'txid', 
-		'status', 
+		'status',
+		'confirmations',
+		'net_fee', 
 		'remarks',
 	];
 }

@@ -1,7 +1,7 @@
 <?php
  
 use App\User; 
-use App\Transaction; 
+use App\QueueTrans; 
 
 use Carbon\Carbon;
 
@@ -258,29 +258,34 @@ function gettransaction_crypto($tx) {
 /////////////////////////////////////////////////////////////////////
 ///  PAYMENT / WITHDRAW / SEND                       ///////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
-function send_doge($addressF, $addressT, $amount){
-    $txid = '1';
-    return $txid;
-}
-
-
-////////////////////////////////////////////////////////////////////
-function move_doge($label, $label2, $amount) {
-    get_balance($label);
-    get_balance($label2);
-
-    $txid = bitcoind()->client('dogecoin')->move($label, $label2, $amount)->get();
-
-    get_balance($label);
-    get_balance($label2);
-
+function send_doge($address, $recipient, $amount){
+    $txid = bitcoind()->client('dogecoin')->sendfromaddress($address, $recipient, $amount)->get();
     if($txid != ''){return $txid;}
     else{return null;}
 }
 
 
 ////////////////////////////////////////////////////////////////////
-function move_crypto_comment($label, $label2, $amount, $comment) {
+function move_doge($address, $recipient, $amount) {
+    $txid = bitcoind()->client('dogecoin')->move($address, $recipient, $amount)->get();
+    if($txid != ''){return $txid;}
+    else{return null;}
+}
+
+
+////////////////////////////////////////////////////////////////////
+function move_crypto_comment($address, $recipient, $amount, $comment) {
+    $qtrans = QueueTrans::create([
+        'sender' => $address,
+        'recipient' => $recipient, 
+        'amount' => $amount, 
+        'txid' => '', 
+        'status' => 'queue',
+        'confirmations' => '0',
+        'net_fee' => '0.00000000', 
+        'remarks' => 'WITHDRAW',
+    ]);
+
     get_balance($label);
     get_balance($label2);
 
