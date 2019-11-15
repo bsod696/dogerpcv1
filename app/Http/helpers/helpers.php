@@ -139,7 +139,7 @@ function listransactionall() {
     else{return null;}
 }
 
-function listransaction($address) {
+function listransaction($address, $useruid) {
     $addrdet = json_decode(file_get_contents('https://api.blockchair.com/dogecoin/dashboards/address/'.$address), TRUE);
     if($addrdet['data']) {
         $txarr[0] = $addrdet['data'][$address]['transactions'];
@@ -171,7 +171,7 @@ function listransaction($address) {
                 $rate = number_format(strval($net_fee_usd/($net_fee/100000000)), 8, '.', '');
 
                 $transaction[] = array(
-                    'uid' => '1661',//$userdet->uid,
+                    'uid' => $useruid,
                     'status' => 'success',
                     'blockid' => $blockid,
                     'blockhash' => $blockhash,
