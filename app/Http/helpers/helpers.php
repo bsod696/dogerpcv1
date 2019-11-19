@@ -300,12 +300,10 @@ function move_crypto_comment($address, $recipient, $amount, $comment) {
 
 
 ////////////////////////////////////////////////////////////////////
-function sendtomanyaddress($memo) {
+function sendtomanyaddress($receiver) {
     $bal = get_balance($address);
     $estfee = getestimatefee();
     $txcost =  number_format(($cryptoamount+$estfee), 8, '.', '');
-
-    $arr = $receiver;
 
     if ($bal >= $txcost){
         $txid = bitcoind()->client('dogecoin')->sendmany("",$receiver)->get();
